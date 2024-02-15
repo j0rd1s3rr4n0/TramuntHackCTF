@@ -1,2 +1,0 @@
-# VulnWeb
-Website vuln example.
