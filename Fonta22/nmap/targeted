@@ -1,0 +1,17 @@
+# Nmap 7.94SVN scan initiated Thu Mar 14 16:31:27 2024 as: nmap -p22,80 -sCV -oN targeted 212.227.146.196
+Nmap scan report for hackmeifyoucan.com (212.227.146.196)
+Host is up (0.0060s latency).
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.11 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   3072 8c:3c:b3:c9:55:22:8e:71:70:16:8b:cb:ce:04:2f:55 (RSA)
+|   256 c9:98:28:1f:61:ef:59:c1:69:41:e8:9e:7a:75:74:7e (ECDSA)
+|_  256 0d:9f:7f:a6:4a:06:6e:ea:b9:c1:de:7e:f7:9c:3e:60 (ED25519)
+80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+|_http-title: Index | MFW
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Thu Mar 14 16:31:39 2024 -- 1 IP address (1 host up) scanned in 11.64 seconds

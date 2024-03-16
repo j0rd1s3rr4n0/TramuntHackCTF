@@ -6,8 +6,8 @@ This repository contains WriteUps from individuals who have completed the VulnWe
 
 Below is the list of individuals who have completed the machine and have written a WriteUp, along with links to their WriteUps:
 
-- [@user1](link-to-github-profile-user1): [WriteUp](link-to-writeup-user1)
-  - WriteUp directory: [WriteUp/user1/](link-to-writeup-folder-user1)
+- [@Fonta22](https://github.com/Fonta22): [WriteUp](./Fonta22/WriteUp-Fonta22.md)
+  - WriteUp directory: [WriteUp/Fonta22/](./Fonta22/)
 - [@user2](link-to-github-profile-user2): [WriteUp](link-to-writeup-user2)
   - WriteUp directory: [WriteUp/user2/](link-to-writeup-folder-user2)
 - [@user3](link-to-github-profile-user3): [WriteUp](link-to-writeup-user3)
