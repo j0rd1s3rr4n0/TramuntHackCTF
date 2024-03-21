@@ -2,6 +2,29 @@
 session_start();
 header("Content-Type: text/html;charset=utf-8");
 
+// Ruta al archivo .env
+$dotenv_path = __DIR__ . '/../.env';
+
+// Leer el archivo .env y cargar las variables de entorno
+if (file_exists($dotenv_path)) {
+    $lines = file($dotenv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Ignorar líneas que comiencen con "#" (comentarios) y las que no contienen un "="
+        if (strpos($line, '#') !== 0 && strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
+    }
+}
+
+// Obtener los valores de conexión del archivo .env
+$host = $_ENV['DB_HOST'] ?? '127.0.0.1';
+$username = $_ENV['DB_USERNAME'] ?? 'user';
+$password = $_ENV['DB_PASSWORD'] ?? 'defaultpassword';
+$database = $_ENV['DB_DATABASE'] ?? 'accounts';
 // Establecer valores iniciales
 if (!isset($_SESSION['reto'])) {
     $_SESSION['reto'] = 0;
@@ -22,7 +45,7 @@ $error_message = ""; // Variable para almacenar mensajes de error
 // Verifica si el formulario ha sido enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Conexión a la base de datos (debes llenar los detalles de conexión)
-    $conexion = new mysqli("127.0.0.1", "web", "P@ssw0rd!", "web");
+    $conexion = new mysqli($host, $username, $password, $database);
 
     // Verifica la conexión
     if ($conexion->connect_error) {
@@ -103,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conexion->close();
 } else {
     // Si no se ha enviado un formulario (no es una solicitud POST), obtener el tótulo y la descripción del reto actual
-    $conexion = new mysqli("127.0.0.1", "web", "P@ssw0rd!", "web");
+    $conexion = new mysqli($host, $username, $password, $database);
     if ($conexion->connect_error) {
         die("Error de conexión a la base de datos: " . $conexion->connect_error);
     }
