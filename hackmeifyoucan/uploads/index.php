@@ -115,7 +115,7 @@ function getFileIcon($fileName) {
 	<?php
         $files = scandir(__DIR__);
         foreach ($files as $file) {
-            if ($file != "." && $file != ".." && $file != "index.php") {
+            if (substr($file, 0, 1) != "." && $file != ".." && $file != "index.php") {
                 echo "<li data-file=\"$file\"><img class=\"file-icon\" src=\"" . getFileIcon($file) . "\"> $file</li>";
             }
         }
