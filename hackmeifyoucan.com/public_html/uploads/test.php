@@ -303,7 +303,7 @@ function getFileIcon($fileName) {
                     break;
             }
             return icon;
-        } 
+        }
 
         // JavaScript para abrir el modal al hacer clic en un archivo
         document.addEventListener('DOMContentLoaded', function() {
