@@ -204,7 +204,7 @@ body {
         
       <div class="navBtn">
  
-      <div id="nav"> <!--find better solution, also scroll sections--> <p><a href= "upload.php">UPLOAD</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#">HOME</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/uploads">FOLDER</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="login.php">LOGIN</a></p>
+      <div id="nav"> <!--find better solution, also scroll sections--> <p><a href= "/upload.php">UPLOAD</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/">HOME</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/uploads">FOLDER</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/login.php">LOGIN</a></p>
       </div>
               
       <div>
