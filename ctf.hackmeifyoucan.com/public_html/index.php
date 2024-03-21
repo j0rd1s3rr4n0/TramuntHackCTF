@@ -21,12 +21,12 @@ $error_message = ""; // Variable para almacenar mensajes de error
 
 // Verifica si el formulario ha sido enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Conexión a la base de datos (debes llenar los detalles de conexión)
+    // ConexiÃ³n a la base de datos (debes llenar los detalles de conexiÃ³n)
     $conexion = new mysqli("127.0.0.1", "web", "P@ssw0rd!", "web");
 
-    // Verifica la conexión
+    // Verifica la conexiÃ³n
     if ($conexion->connect_error) {
-        die("Error de conexión a la base de datos: " . $conexion->connect_error);
+        die("Error de conexiÃ³n a la base de datos: " . $conexion->connect_error);
     }
 
     // Obtiene los valores del formulario
@@ -64,16 +64,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Si hay un mensaje de error, se mostrará dentro del formulario
+    // Si hay un mensaje de error, se mostrarÃ³ dentro del formulario
     // en lugar de utilizar "echo" y "exit"
     if (!empty($error_message)) {
         $error_message = "<label class='error'>$error_message</label>";
     } else {
         // Avanza al siguiente reto
         $_SESSION["reto"] = $reto + 1;
-        echo "¡Felicitaciones! Has completado el reto $reto.";
+        echo "Ã³Felicitaciones! Has completado el reto $reto.";
 
-        // Obtener información del siguiente reto
+        // Obtener informaciÃ³n del siguiente reto
         $siguienteReto = $reto + 1;
         $query_siguiente = "SELECT * FROM retos WHERE numero = $siguienteReto";
         $resultado_siguiente = $conexion->query($query_siguiente);
@@ -83,29 +83,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $titulo = $row["titulo"];
             $descripcion = $row["descripcion"];
         } else {
-            echo "<br>No hay más retos disponibles.";
+            echo "<br>No hay mÃ³s retos disponibles.";
         }
         $reto = $_SESSION["reto"];
 
-        // Verifica si es el último reto y redirige a google.com si es así
+        // Verifica si es el Ã³ltimo reto y redirige a google.com si es asÃ³
         $query_total_retos = "SELECT COUNT(*) as total_retos FROM retos";
         $resultado_total_retos = $conexion->query($query_total_retos);
         $total_retos = $resultado_total_retos->fetch_assoc()["total_retos"];
 
         if ($reto >= $total_retos) {
-            // Es el último reto, redirige a Certificado
+            // Es el Ã³ltimo reto, redirige a Certificado
             header("Location: https://forms.gle/LLh1rcPYpujJqTo6A");
-            exit(); // ¡Importante! Termina el script para evitar que se ejecute más código
+            exit(); // Ã³Importante! Termina el script para evitar que se ejecute mÃ³s cÃ³digo
         }
     }
 
-    // Cierra la conexión a la base de datos
+    // Cierra la conexiÃ³n a la base de datos
     $conexion->close();
 } else {
-    // Si no se ha enviado un formulario (no es una solicitud POST), obtener el título y la descripción del reto actual
+    // Si no se ha enviado un formulario (no es una solicitud POST), obtener el tÃ³tulo y la descripciÃ³n del reto actual
     $conexion = new mysqli("127.0.0.1", "web", "P@ssw0rd!", "web");
     if ($conexion->connect_error) {
-        die("Error de conexión a la base de datos: " . $conexion->connect_error);
+        die("Error de conexiÃ³n a la base de datos: " . $conexion->connect_error);
     }
 
     $query_actual = "SELECT * FROM retos WHERE numero = $reto";
@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         input[type=submit]:hover{background-color:#45a049;width:20%}
         h1{padding:25pt}
         form{padding:10pt}
-        /* Estilos para el menú de encabezado */
+        /* Estilos para el menÃ³ de encabezado */
         header{background-color: #333;padding: 10px;z-index:99999;position:relative;}
         footer{background-color: #333;padding: 10px;z-index:99999;position:relative;}
         header ul{list-style: none;padding: 0;text-align: center;}
