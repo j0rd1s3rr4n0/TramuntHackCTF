@@ -16,14 +16,16 @@ sudo apt install apache2 -y
 # Instalar MySQL Server
 sudo apt install mysql-server -y
 
+sudo systemctl start mysql
+sudo systemctl enable mysql
+
 # Configurar MySQL Server
 sudo mysql_secure_installation <<EOF
-
-Y
-tu_contraseña_de_root_mysql
-tu_contraseña_de_root_mysql
+A27PYMhKzVjxtsx1MZm95ji9
+A27PYMhKzVjxtsx1MZm95ji9
 Y
 Y
+N
 Y
 Y
 EOF
