@@ -1,9 +1,10 @@
+```css
 USER:PASSWORD
 System:
     sysadmin:P@ssw0rd!
 MySQL:
     root:flag{cLantiarTheRFolm0LIN}
-
+```
 ```bash
 #!/bin/bash
 
