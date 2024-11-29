@@ -180,13 +180,14 @@ var NodesJs = (function (parameters) {
 
                 _node[3] = [];
 
-                t_NodesJs.nodes.forEach(function (_node2, _node2_i) {
+                for (var _node2_i = 0; _node2_i < t_NodesJs.nodes.length; _node2_i++) {
+                    var _node2 = t_NodesJs.nodes[_node2_i];
                     if (_node_i == _node2_i) {
-                        return true;
+                        continue;
                     }
 
                     if (_node[3].indexOf(_node2_i) > -1) {
-                        return true;
+                        continue;
                     }
 
                     var dx = Math.abs(_node[0] - _node2[0]);
