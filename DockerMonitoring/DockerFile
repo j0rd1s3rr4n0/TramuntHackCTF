@@ -1,0 +1,32 @@
+FROM debian:latest
+
+# Instalación de herramientas necesarias
+RUN apt-get update && apt-get install -y \
+    curl \
+    apt-transport-https \
+    gnupg \
+    lsb-release \
+    && apt-get clean
+
+# Instalar Wazuh
+RUN curl -s https://packages.wazuh.com/4.x/debian/wazuh.repo > /etc/apt/sources.list.d/wazuh.list \
+    && curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - \
+    && apt-get update \
+    && apt-get install -y wazuh-manager
+
+# Instalar Kibana
+RUN curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
+    && echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list \
+    && apt-get update && apt-get install -y kibana
+
+# Configuración de Kibana para usar Elasticsearch
+RUN echo "elasticsearch.hosts: [\"http://localhost:9200\"]" >> /etc/kibana/kibana.yml
+
+# Exponer puertos necesarios
+EXPOSE 5601 1514
+
+# Montar el volumen compartido
+VOLUME ["/var/log/ctf_security"]
+
+# Comando para iniciar los servicios
+CMD service wazuh-manager start && service kibana start && /bin/bash

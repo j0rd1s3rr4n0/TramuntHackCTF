@@ -1,0 +1,17 @@
+FROM ubuntu:latest
+
+# Instalar Apache, PHP y extensiones necesarias
+RUN apt-get update && apt-get install -y \    
+    apache2  \
+    net-tools\
+    nano \
+    ssh \
+    openssh-server
+
+RUN echo -e "\nPermitRootLogin yes" >> nano /etc/ssh/sshd_config
+RUN service ssh start
+RUN rm -rf /var/www/
+COPY . /var/www/
+# COPY management.ctf.com /var/www/
+RUN chmod 777 /var/www/EasySetup.sh
+RUN bash /var/www/EasySetup.sh

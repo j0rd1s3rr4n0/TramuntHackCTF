@@ -4,6 +4,11 @@ header("Content-Type: text/html;charset=utf-8");
 
 // Ruta al archivo .env
 $dotenv_path = __DIR__ . '/../.env';
+#echo $dotenv_path;
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 
 // Leer el archivo .env y cargar las variables de entorno
 if (file_exists($dotenv_path)) {
@@ -16,13 +21,14 @@ if (file_exists($dotenv_path)) {
             $value = trim($value);
             $_ENV[$key] = $value;
             putenv("$key=$value");
+            echo "$key=$value\n";
         }
     }
 }
 
 // Obtener los valores de conexión del archivo .env
 $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
-$username = $_ENV['DB_USERNAME'] ?? 'user';
+$db_username = $_ENV['DB_USERNAME'] ?? 'user';
 $password = $_ENV['DB_PASSWORD'] ?? 'defaultpassword';
 $database = $_ENV['DB_DATABASE'] ?? 'accounts';
 // Establecer valores iniciales
@@ -45,7 +51,7 @@ $error_message = ""; // Variable para almacenar mensajes de error
 // Verifica si el formulario ha sido enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Conexión a la base de datos (debes llenar los detalles de conexión)
-    $conexion = new mysqli($host, $username, $password, $database);
+    $conexion = new mysqli($host, $db_username, $password, $database);
 
     // Verifica la conexión
     if ($conexion->connect_error) {
@@ -178,11 +184,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <header>
     <ul>
         <li><a href="#" target="_blank">Inicio</a></li>
-        <li><a href="http://hackmeifyoucan.com/" target="_blank">CTF WEB</a></li>
+        <li><a href="http://gestion.ctf.com/" target="_blank">CTF WEB</a></li>
         <li><a href="https://github.com/j0rd1s3rr4n0/VulnWeb/" target="_blank">GitHub VulnWeb</a></li>
         <li><a href="http://<?php echo  $_SERVER['SERVER_NAME']; ?>">Reload Page</a></li>
 	<li><a href="https://googlethatforyou.com/?q=Que%20es%20el%20Virtual%20Hosting">Virtual Hosting</a></li>
-	<li><a href="https://bluegraded.i234.me/drive/d/s/xUSqSHesnKDMuJ7ptyxRJUSGLOG7Uywv/0pWUYisMUmI3wm6zbi95uwqFFSL5r2kp-ObpAHnIkLQs">How to Virtual Hosting</a></li>
 
 <li></li>
 <li></li>
