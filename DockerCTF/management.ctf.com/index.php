@@ -1,265 +1,108 @@
-<?php
-session_start();
-header("Content-Type: text/html;charset=utf-8");
-
-// Ruta al archivo .env
-$dotenv_path = __DIR__ . '/../.env';
-#echo $dotenv_path;
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
-// Leer el archivo .env y cargar las variables de entorno
-if (file_exists($dotenv_path)) {
-    $lines = file($dotenv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        // Ignorar líneas que comiencen con "#" (comentarios) y las que no contienen un "="
-        if (strpos($line, '#') !== 0 && strpos($line, '=') !== false) {
-            list($key, $value) = explode('=', $line, 2);
-            $key = trim($key);
-            $value = trim($value);
-            $_ENV[$key] = $value;
-            putenv("$key=$value");
-            echo "$key=$value\n";
-        }
-    }
-}
-
-// Obtener los valores de conexión del archivo .env
-$host = $_ENV['DB_HOST'] ?? '127.0.0.1';
-$db_username = $_ENV['DB_USERNAME'] ?? 'user';
-$password = $_ENV['DB_PASSWORD'] ?? 'defaultpassword';
-$database = $_ENV['DB_DATABASE'] ?? 'accounts';
-// Establecer valores iniciales
-if (!isset($_SESSION['reto'])) {
-    $_SESSION['reto'] = 0;
-}
-
-if (!isset($_SESSION['username'])) {
-    $_SESSION['username'] = null;
-}
-
-$username = $_SESSION['username'];
-$reto = $_SESSION['reto'];
-
-$titulo = "";
-$descripcion = "";
-
-$error_message = ""; // Variable para almacenar mensajes de error
-
-// Verifica si el formulario ha sido enviado
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Conexión a la base de datos (debes llenar los detalles de conexión)
-    $conexion = new mysqli($host, $db_username, $password, $database);
-
-    // Verifica la conexión
-    if ($conexion->connect_error) {
-        die("Error de conexión a la base de datos: " . $conexion->connect_error);
-    }
-
-    // Obtiene los valores del formulario
-    $reto = $_SESSION['reto'];
-    $flag = isset($_POST["flag"]) ? $_POST["flag"] : null;
-
-    // Verifica si es el primer reto y obtiene el nombre de usuario
-    if ($reto == 0) {
-        $username = $_POST["username"];
-
-        // Verifica si el nombre de usuario ya existe
-        $query_check_username = "SELECT * FROM usuarios WHERE username = '$username'";
-        $resultado_check_username = $conexion->query($query_check_username);
-        if ($resultado_check_username->num_rows > 0) {
-            $error_message = "El nombre de usuario '$username' ya existe. Por favor, elige otro.";
-        } else {
-            // Inserta el nombre de usuario en la tabla de usuarios
-            $query_insert = "INSERT INTO usuarios (username) VALUES ('$username')";
-            if (!$conexion->query($query_insert)) {
-                $error_message = "Error al insertar el nombre de usuario: " . $conexion->error;
-            } else {
-                $_SESSION["username"] = $username;
-            }
-        }
-    }
-
-    // Verifica la bandera solamente si no es el primer reto
-    if ($reto > 0) {
-        // Verifica el reto actual y la bandera
-        $query = "SELECT * FROM retos WHERE numero = $reto AND flag = '$flag'";
-        $resultado = $conexion->query($query);
-        if ($resultado->num_rows == 0) {
-            // La bandera es incorrecta, muestra un mensaje de error
-            $error_message = "La bandera es incorrecta. Por favor, intenta de nuevo.";
-        }
-    }
-
-    // Si hay un mensaje de error, se mostraró dentro del formulario
-    // en lugar de utilizar "echo" y "exit"
-    if (!empty($error_message)) {
-        $error_message = "<label class='error'>$error_message</label>";
-    } else {
-        // Avanza al siguiente reto
-        $_SESSION["reto"] = $reto + 1;
-        echo "óFelicitaciones! Has completado el reto $reto.";
-
-        // Obtener información del siguiente reto
-        $siguienteReto = $reto + 1;
-        $query_siguiente = "SELECT * FROM retos WHERE numero = $siguienteReto";
-        $resultado_siguiente = $conexion->query($query_siguiente);
-
-        if ($resultado_siguiente->num_rows > 0) {
-            $row = $resultado_siguiente->fetch_assoc();
-            $titulo = $row["titulo"];
-            $descripcion = $row["descripcion"];
-        } else {
-            echo "<br>No hay mós retos disponibles.";
-        }
-        $reto = $_SESSION["reto"];
-
-        // Verifica si es el óltimo reto y redirige a google.com si es asó
-        $query_total_retos = "SELECT COUNT(*) as total_retos FROM retos";
-        $resultado_total_retos = $conexion->query($query_total_retos);
-        $total_retos = $resultado_total_retos->fetch_assoc()["total_retos"];
-
-        if ($reto >= $total_retos) {
-            // Es el óltimo reto, redirige a Certificado
-            header("Location: https://forms.gle/LLh1rcPYpujJqTo6A");
-            exit(); // óImportante! Termina el script para evitar que se ejecute mós código
-        }
-    }
-
-    // Cierra la conexión a la base de datos
-    $conexion->close();
-} else {
-    // Si no se ha enviado un formulario (no es una solicitud POST), obtener el tótulo y la descripción del reto actual
-    $conexion = new mysqli($host, $username, $password, $database);
-    if ($conexion->connect_error) {
-        die("Error de conexión a la base de datos: " . $conexion->connect_error);
-    }
-
-    $query_actual = "SELECT * FROM retos WHERE numero = $reto";
-    $resultado_actual = $conexion->query($query_actual);
-    if ($resultado_actual->num_rows > 0) {
-        $row = $resultado_actual->fetch_assoc();
-        $titulo = $row["titulo"];
-        $descripcion = $row["descripcion"];
-    }
-
-    $conexion->close();
-}
-?>
+<?php session_start(); ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no,user-scalable=0"/>
-    <style type="text/css">
-        *{padding:0;margin:0}
-        body{font-family:Arial;font-size:14px;line-height:20px;color:#fff;background:#000}
-        .a,.a:visited{color:#fff;text-decoration:underline}
-        .btn,a.btn,a.btn:visited{text-decoration:none;color:#fff;display:inline-block;cursor:pointer;border:1px solid #c1c1c1;border-bottom:2px solid #c1c1c1;padding:5px;border-radius:2px;transition:250ms;font-size:14px}
-        .btn:hover{box-shadow:0 0 12px 0 rgba(255,255,255,.5);background:rgba(255,255,255,.3)}
-        .mainBox{width:500px;display:inline-block;border-radius:20pt;background:rgba(255,255,255,.2);margin-top:100px;padding:50pt;border:3pt solid rgba(255,255,255,.5)}
-        @media only screen and (max-width:600px){.mainBox{width:300px;padding:50pt;border-radius:20pt;border:3pt solid rgba(255,255,255,.5)}}
-        @media only screen and (max-height:700px){.mainBox{margin-top:50px;padding:50pt;border-radius:20pt;border:3pt solid rgba(255,255,255,.5)}}
-        input[type=text]{padding:8px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;margin-bottom:10px;width:60%}
-        input[type=submit]{background-color:#4caf50;color:#fff;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;width:20%}
-        label{font-weight:700;font-size:120%}
-        a{color:#fff}
-        a:visited{color:#ff0}
-        a:hover,label.error{color:red}
-        input[type=submit]:hover{background-color:#45a049;width:20%}
-        h1{padding:25pt}
-        form{padding:10pt}
-        /* Estilos para el menó de encabezado */
-        header{background-color: #333;padding: 10px;z-index:99999;position:relative;}
-        footer{background-color: #333;padding: 10px;z-index:99999;position:relative;}
-        header ul{list-style: none;padding: 0;text-align: center;}
-        header ul li{display: inline;margin-right: 20px;}
-        header ul li a{color: #fff;text-decoration: none;font-size: 18px;}
-        header ul li a:hover{color: #ccc;}
-    </style>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>TramuntHack CTF</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/bootstrap4-neon-glow.min.css">
+
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel='stylesheet' href='//cdn.jsdelivr.net/font-hack/2.020/css/hack.min.css'>
+    <link rel="stylesheet" href="css/main.css">
 </head>
-<body>
-<header>
-    <ul>
-        <li><a href="#" target="_blank">Inicio</a></li>
-        <li><a href="http://gestion.ctf.com/" target="_blank">CTF WEB</a></li>
-        <li><a href="https://github.com/j0rd1s3rr4n0/VulnWeb/" target="_blank">GitHub VulnWeb</a></li>
-        <li><a href="http://<?php echo  $_SERVER['SERVER_NAME']; ?>">Reload Page</a></li>
-	<li><a href="https://googlethatforyou.com/?q=Que%20es%20el%20Virtual%20Hosting">Virtual Hosting</a></li>
 
-<li></li>
-<li></li>
-<li></li>
-        <?php if (isset($_SESSION['username']) && $_SESSION['username']!=""){ 
-        echo "<li><a href=\"javascript:alert('Hello, $username');\">Welcome, $username</a></li>";
-} ?>
-    </ul>
-</header>
-<div style="position: relative; z-index: 100;">
-    <div style="text-align: center; font-family: 'Arial';">
-        <div class="mainBox">
-            <?php
-            if($titulo!=""){
-                echo "<h1>".$titulo."</h1>";
-            }                if($descripcion!=""){
-                echo "<p>".$descripcion."</p>";
-            }else{
-                echo "<p>Introduce un nombre de usuario</p>";
-            }
-            ?>
-            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                <?php if ($_SESSION['reto'] == 0) : ?>
-                    <!-- Primer reto: Introducir el nombre de usuario -->
-                    <label for="username">Usuario:</label>
-                    <input type="text" id="username" name="username" required>
-                    <input type="submit" value="Enviar"><br>
-                    <input type="hidden" name="reto" value="0">
-                    <input type="hidden" name="flag" value="flag{username}">
-                <?php else : ?>
-                    <!-- Resto de los retos -->
-                    <label for="flag">Flag <?php echo $reto; ?>:</label>
 
-                    <input type="text" id="flag" name="flag" required><br><br>
-                    <input type="submit" value="Enviar">
-                <?php endif; ?><br>
-                <sub><?php echo $error_message; ?></sub>
-            </form>
-            <div style="background-color:red;">
-                <?php
-		if($_GET['debug'] == 1){
-	                print_r($_SESSION);
-		}
-                ?>
+<body class="imgloaded">
+
+    <div id="preloader">
+    </div>
+
+    <div id="main">
+        <div class="glitch">
+            <div class="glitch__img"></div>
+            <div class="glitch__img"></div>
+            <div class="glitch__img"></div>
+            <div class="glitch__img"></div>
+            <div class="glitch__img"></div>
+        </div>
+        <div class="navbar-dark text-white">
+            <div class="container">
+                <nav class="navbar px-0 navbar-expand-lg navbar-dark">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                        <div class="navbar-nav">
+                            <a href="index.php" class="pl-md-0 p-3 text-decoration-none text-light">
+                                <h3 class="bold"><h3 class="bold"> <img src="images/tramunthack.png" alt="CTF" style="height: 8rem;"> <span class="color_danger">TRAMUNTHACK</span><span class="color_white">CTF</span></h3>
+                            </a>
+                        </div>
+                        <div class="navbar-nav ml-auto">
+                            <a href="index.php" class="p-3 text-decoration-none text-white bold">Home</a>
+                            <?php if (isset($_SESSION['team_name'])) {
+                                echo '<a href="instructions.php" class="p-3 text-decoration-none text-light bold">Instructions</a>';
+                            } else { ?>
+                                <a href="about.php" class="p-3 text-decoration-none text-light bold">About</a>
+                            <?php } ?>
+                            <a href="hackerboard.php" class="p-3 text-decoration-none text-light bold">Hackerboard</a>
+                            <?php if (isset($_SESSION['team_name'])) {
+                                echo '<a class="p-3 text-decoration-none text-light bold" style="color:#acacff!important;">' . $_SESSION['team_name'] . '</a>';
+                            } else { ?>
+                                <a href="login.php" class="p-3 text-decoration-none text-light bold">Login</a>
+                            <?php } if (isset($_SESSION['team_name'])) {
+                                echo '<a href="logout.php" class="p-3 text-decoration-none text-light bold">Logout</a>';
+                            } else { ?>
+                                <a href="register.php" class="p-3 text-decoration-none text-light bold">Register</a>
+                            <?php } ?>
+                        </div>
+                    </div>
+                </nav>
+
+            </div>
+        </div>
+
+        <div class="jumbotron bg-transparent mb-0 pt-3 radius-0">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-8">
+                        <h1 class="display-1 bold color_white content__title">TRAMUNTHACKCTF<span class="vim-caret">&nbsp;</span></h1>
+                        <h1 class="display-1 bold color_white content__title2">2024</h1>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-4">
+                        <p class="mt-5 text-grey text-spacey hackerFont lead">
+                            The quieter you become the more you are able to hear.
+                        </p>
+                        <?php if(isset($_SESSION['team_name'])) { ?>
+                            <button class="btn btn-outline-danger btn-shadow px-3 my-2 ml-0 ml-sm-1 text-left typewriter" 
+                            onclick="(function(){window.location.href='instructions.php'})();">
+                                <h4>Instructions</h4>
+                            </button>
+                        <?php } else {?>
+                        <button class="btn btn-outline-danger btn-shadow px-3 my-2 ml-0 ml-sm-1 text-left typewriter" 
+                        onclick="(function(){window.location.href='login.php'})();">
+                            <h4>Login</h4>
+                        </button>
+                        <?php } ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- <nodes.js embedding> -->
-<script type="text/javascript" src="js/nodes.js"></script>
-<script type="text/javascript">
-    var nodesjs = new NodesJs({
-        id: 'nodes',
-        width: window.innerWidth,
-        height: window.innerHeight,
-        particleSize: 2,
-        lineSize: 1,
-        particleColor: [255, 255, 255, 0.3],
-        lineColor: [255, 255, 255],
-        backgroundFrom: [10, 25, 100],
-        backgroundTo: [25, 50, 150],
-        backgroundDuration: 4000,
-        nobg: false,
-        number: window.hasOwnProperty('orientation') ? 30: 100,
-        speed: 20
-    });
-</script>
-<div style="position: absolute; left: 0px; top: 0px; overflow: hidden; width: 100%; height: 100%;">
-    <canvas id="nodes"></canvas>
-</div>
-<!-- </nodes.js embedding> -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="js/preloader.js"></script>
 </body>
 </html>
-

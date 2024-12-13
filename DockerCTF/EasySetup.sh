@@ -1,21 +1,16 @@
-#!/bin/bash
-
-alias publicip='echo $(curl -s ifconfig.me) | grep -oE "((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])"'
-alias myip="ip addr | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])'"
-alias restartall="service apache2 restart && service mariadb restart && service ssh restart"
-
+#!/usr/bin/bash -e
+alias publicip='curl -s ifconfig.me | grep -oE "((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])"';
+alias myip="ip addr | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])'";
+alias restartall="service apache2 restart && service mariadb restart && service ssh restart";
 
 # Step 1: Update package list and install Apache
 echo "Updating package list..."
-apt update -y
-
 echo "Installing Apache..."
-apt install apache2 -y
-
 # Step 2: Install MariaDB
 echo "Installing MariaDB..."
 
 echo "$( awk 'NR==5' /var/www/credentials.cfg | cut -d'=' -f2; )\n$( awk 'NR==5' /var/www/credentials.cfg | cut -d'=' -f2; )\n" | apt install mariadb-server -y
+
 
 # Secure the MariaDB installation
 echo "Securing MariaDB..."
