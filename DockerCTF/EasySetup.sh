@@ -115,3 +115,8 @@ service apache2 restart &> /dev/null
 service mariadb restart &> /dev/null
 
 mariadb < /var/www/crear_tablas.sql
+
+echo "Habilitando autoarranque de servicios..."
+update-rc.d apache2 defaults
+update-rc.d mysql defaults
+update-rc.d cron defaults
