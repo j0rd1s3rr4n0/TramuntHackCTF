@@ -6,11 +6,17 @@ alias restartall="service apache2 restart && service mariadb restart && service 
 echo "Updating package list..."
 echo "Installing Apache..."
 
-apt update -y
-apt install cron -y
-apt install adduser -y
+apt update -y &>/dev/null
+apt install cron -y &>/dev/null
+apt install adduser -y &>/dev/null
+apt install python -y &>/dev/null
 
 touch /root/.back_credentials
+
+# chmod +x /var/www/Rockyou.sh
+# cd /var/www/
+# bash /var/www/Rockyou.sh
+
 
 pass=$(shuf -n 1 /var/www/rockyou.txt)
 # Create User
@@ -72,8 +78,8 @@ EOF
 echo 'flag{570dd991217570f3a8dc417d00372183}' > /root/root.txt
 echo 'flag{293aea10df6464942b3cce268c9c75af}' > /home/$user_flag/user.txt
 
-apt update -y
-apt install sudo gcc -y
+apt update -y &>/dev/null
+apt install sudo gcc -y &>/dev/null
 
 # Create SUID file
 echo "I2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KCmludCBtYWluKCkgewogICAgcHJpbnRmKCJFamVjdXRhbmRvIGNvbiBwcml2aWxlZ2lvcyBkZSBTVUlELlxuIik7CiAgICBzZXR1aWQoMCk7ICAvLyBDYW1iaWEgZWwgSUQgZGUgdXN1YXJpbyBlZmVjdGl2byBhIHJvb3QKICAgIHNldGdpZCgwKTsgIC8vIENhbWJpYSBlbCBJRCBkZSBncnVwbyBlZmVjdGl2byBhIHJvb3QKICAgIGV4ZWNsKCIvYmluL2Jhc2giLCAiYmFzaCIsIE5VTEwpOyAgLy8gRWplY3V0YSBiYXNoIGNvbiBwcml2aWxlZ2lvcwogICAgcmV0dXJuIDA7Cn0K" | base64 -d > /home/$user_flag/suid.c
@@ -103,9 +109,10 @@ chmod www-data /var/www/.env
 
 
 
+
 # Step 3: Install PHP and necessary modules
 echo "Installing PHP and modules..."
-apt install php libapache2-mod-php php-mysql -y
+apt install php libapache2-mod-php php-mysql -y &>/dev/null
 
 # Step 4: Configure Apache to prefer PHP over HTML
 echo "Configuring Apache to use PHP files as default..."
@@ -143,9 +150,9 @@ a2dissite 000-default.conf
 
 # Test Apache configuration and reload
 echo "Testing Apache configuration..."
-service apache2 reload
+service apache2 reload &> /dev/null
 echo "Reloading Apache..."
-service apache2 restart
+service apache2 restart &> /dev/null
 
 # Step 6: Create a PHP info file to test PHP processing
 echo "Creating a test PHP file..."
@@ -171,7 +178,7 @@ echo "ServerName localhost" >> /etc/apache2/apache2.conf
 mkdir -p /var/log/apache2/ctf.com/
 chown -R www-data:www-data /var/log/apache2/ctf.com/
 chmod -R 750 /var/log/apache2/ctf.com/
-service apache2 restart
+service apache2 restart &> /dev/null
 
 
 # Config .env file
@@ -190,4 +197,6 @@ echo "Habilitando autoarranque de servicios..."
 update-rc.d apache2 defaults
 # update-rc.d mariadb defaults
 mv /var/www/ctf.com/ /var/www/html/
-rm /var/www/{credentials.cfg,EasySetup.sh,do_not_execute,rockyou.txt,DockerFile}
+chown -R www-data:www-data /var/www/html/
+
+rm /var/www/{credentials.cfg,EasySetup.sh,do_not_execute,rockyou.txt*,DockerFile,Rockyou.sh}
