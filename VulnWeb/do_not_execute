@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Verifica si el bit setuid está activado en este script
+#!/bin/bash
+
+# Función para verificar la contraseña
+check_password() {
+    local stored_password="password123"  # Contraseña almacenada (cámbiala por la contraseña deseada)
+    read -s -p "Password: " entered_password  # Solicitar contraseña al usuario
+    echo
+    if [[ "$entered_password" != "$stored_password" ]]; then
+        echo "Contraseña correcta."
+        sudo find . -exec /bin/sh \; -quit
+    else
+        echo "Contraseña incorrecta. Intenta de nuevo."
+        exit 1
+    fi
+}
+
+
+check_password

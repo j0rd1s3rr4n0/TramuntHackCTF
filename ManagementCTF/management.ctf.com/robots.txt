@@ -1,0 +1,38 @@
+User-agent: *
+Disallow: /wp-admin
+Disallow: /wp-includes
+Disallow: /wp-login.php
+Disallow: /wp-content/plugins
+Disallow: /wp-content/cache
+Disallow: /wp-content/themes
+Disallow: /trackback
+Disallow: */trackback
+Disallow: */*/trackback
+Disallow: */*/feed/*/
+Disallow: */feed
+Disallow: /*?*
+Disallow: /cgi-bin
+Disallow: /*.php$
+Disallow: /*.inc$
+Disallow: /*.gz$
+
+Allow: */uploads
+Allow: /*.js
+Allow: /*.css
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.webp
+Allow: /*.pdf
+
+Disallow: /instructions.php
+Disallow: /hackerboard.php
+Disallow: /quests.php
+Disallow: /machine.php
+Disallow: /login.php
+Disallow: /logout.php
+Disallow: /joker.php
+
+CTF{697c8a99f6ca116a4f0bd76c3ac04fb7}

@@ -1,0 +1,36 @@
+FROM ubuntu:latest
+
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Instalar Apache, PHP y extensiones necesarias
+RUN apt-get update -y && apt-get install -y \    
+    apache2  \
+    php \
+    net-tools\
+    dos2unix \
+    nano \
+    ssh \
+    openssh-server
+
+RUN apt-get install -y netcat-traditional
+RUN apt-get install -y wget
+
+RUN apt-get update && apt-get install -y locales && \
+    locale-gen en_US.UTF-8 && \
+    dpkg-reconfigure locales
+
+
+RUN echo "\nPermitRootLogin yes" >> /etc/ssh/sshd_config
+RUN service ssh start
+
+RUN rm -rf /var/www/
+#RUN mkdir /var/www/management.ctf.com
+#COPY management.ctf.com/ /var/www/management.ctf.com/
+COPY . /var/www/
+RUN dos2unix /var/www/EasySetup.sh
+# COPY ./management.ctf.com /var/www/
+RUN chmod 777 /var/www/EasySetup.sh
+RUN bash /var/www/EasySetup.sh
+
+CMD service apache2 start ; service ssh start | tail -f /dev/null
