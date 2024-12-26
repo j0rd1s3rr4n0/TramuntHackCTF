@@ -47,7 +47,7 @@ if (isset($_SESSION['login']) && $_SESSION['login'] == $hash) {
 		<p>Hello <?php echo $username; ?>!</br></p> 
 		<p style=""><a style="float:right;color:white;text-decoration:none;" href="?logout=true">Logout?</a></p>
     <div id="margin">Title: <p id="title" type="text" name="title">Flag</p></div>
-		<p placeholder="Enter something funny." id="text" name="text" rows="4" style="overflow: hidden; word-wrap: break-word; resize: none; height: 160px; ">flag{simple_website_fail}</p>  
+		<p placeholder="Enter something funny." id="text" name="text" rows="4" style="overflow: hidden; word-wrap: break-word; resize: none; height: 160px; "><?= shell_exec('cat flag.txt')?></p>  
 		<br>
 		<!--<input id="button" type="submit" value="Create">-->
 		

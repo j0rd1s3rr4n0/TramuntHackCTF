@@ -99,7 +99,7 @@ echo "Cleaning up..."
 
 echo "ServerName localhost" >> /etc/apache2/apache2.conf
 mkdir -p /var/log/apache2/management.ctf.com/
-chown -R www-data:www-data /var/log/apache2/management.ctf.com/
+# chown -R www-data:www-data /var/log/apache2/management.ctf.com/
 chmod -R 750 /var/log/apache2/management.ctf.com/
 service apache2 restart
 
@@ -115,6 +115,66 @@ service apache2 restart &> /dev/null
 service mariadb restart &> /dev/null
 
 mariadb < /var/www/crear_tablas.sql
+
+
+# Archivo de configuración de Apache (puede variar dependiendo de la distribución)
+CONFIG_FILE="/etc/apache2/apache2.conf"  # Para distribuciones basadas en Debian/Ubuntu
+# CONFIG_FILE="/etc/httpd/conf/httpd.conf"  # Para distribuciones basadas en RedHat/CentOS
+
+# Verificar si el archivo de configuración existe
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo "El archivo de configuración de Apache no se encuentra en $CONFIG_FILE."
+  exit 1
+fi
+
+# Realizar una copia de seguridad del archivo de configuración
+cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+echo "Se ha creado una copia de seguridad en ${CONFIG_FILE}.bak"
+
+
+
+# Verificar si el script se está ejecutando como root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Este script debe ejecutarse como root."
+  exit 1
+fi
+
+# Nombre del nuevo usuario
+USER_NAME="j0rd1s3rr4n0"
+
+# Crear el nuevo usuario
+useradd -m -s /bin/bash "$USER_NAME"
+
+# Establecer una contraseña para el nuevo usuario
+echo "$USER_NAME:password" | chpasswd
+
+# Agregar el usuario al grupo sudo (Ubuntu/Debian)
+usermod -aG sudo "$USER_NAME"
+
+# Añadir el usuario al gripo root (Debian/Ubuntu)
+usermod -aG root "$USER_NAME"
+
+# Agregar el usuario al grupo wheel (CentOS/Red Hat)
+# usermod -aG wheel "$USER_NAME"  # Descomenta esta línea si usas CentOS o Red Hat
+
+echo "CTF{df30cb178eb8e37728f39b3e6551c8de}" > /root/root.txt
+# Confirmar que el usuario se ha creado correctamente
+
+
+# Modificar las directivas User y Group en el archivo de configuración
+sed -i 's/^User .*/User j0rd1s3rr4n0/' "$CONFIG_FILE"
+sed -i 's/^Group .*/Group j0rd1s3rr4n0/' "$CONFIG_FILE"
+
+chown -R j0rd1s3rr4n0:j0rd1s3rr4n0 /root
+
+echo "The user.txt file was created in the hackerman's home directory." > /home/$USER_NAME/user.txt
+
+echo 'export CFLAGS="$CFLAGS -DBIG_SECURITY_HOLE"' >> /etc/profile
+
+# Reiniciar Apache para aplicar los cambios
+service apache2 restart 
+
+echo "Apache ahora se ejecuta como root."
 
 echo "Habilitando autoarranque de servicios..."
 update-rc.d apache2 defaults

@@ -1,32 +1,38 @@
-FROM debian:latest
+FROM ubuntu:latest
 
-# Instalación de herramientas necesarias
-RUN apt-get update && apt-get install -y \
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Instalar Apache, PHP y extensiones necesarias
+RUN apt-get update -y && apt-get install -y \    
+    apache2  \
+    php \
+    net-tools\
+    dos2unix \
+    nano \
+    ssh \
+    openssh-server \
+    nmap \
     curl \
-    apt-transport-https \
-    gnupg \
-    lsb-release \
-    && apt-get clean
+    wget \
+    git \
+    grep \
+    sudo
 
-# Instalar Wazuh
-RUN curl -s https://packages.wazuh.com/4.x/debian/wazuh.repo > /etc/apt/sources.list.d/wazuh.list \
-    && curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - \
-    && apt-get update \
-    && apt-get install -y wazuh-manager
+RUN apt-get update && apt-get install -y locales && \
+    locale-gen en_US.UTF-8 && \
+    dpkg-reconfigure locales
 
-# Instalar Kibana
-RUN curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
-    && echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list \
-    && apt-get update && apt-get install -y kibana
 
-# Configuración de Kibana para usar Elasticsearch
-RUN echo "elasticsearch.hosts: [\"http://localhost:9200\"]" >> /etc/kibana/kibana.yml
+RUN echo -e "\nPermitRootLogin yes" >> nano /etc/ssh/sshd_config
+RUN service ssh start
+RUN rm -rf /var/www/
+#RUN mkdir /var/www/management.ctf.com
+#COPY management.ctf.com/ /var/www/management.ctf.com/
+COPY . /var/www/
+RUN dos2unix /var/www/EasySetup.sh
+# COPY ./management.ctf.com /var/www/
+RUN chmod 777 /var/www/EasySetup.sh
+RUN bash /var/www/EasySetup.sh
 
-# Exponer puertos necesarios
-EXPOSE 5601 1514
-
-# Montar el volumen compartido
-VOLUME ["/var/log/ctf_security"]
-
-# Comando para iniciar los servicios
-CMD service wazuh-manager start && service kibana start && /bin/bash
+CMD echo "Created by J0rd1s3rr4n0 -> https:github.com/j0rd1s3rr4n0/" && service apache2 start & service mariadb start & tail -f /dev/null

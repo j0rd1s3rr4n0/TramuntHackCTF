@@ -11,7 +11,9 @@ RUN apt-get update -y && apt-get install -y \
     dos2unix \
     nano \
     ssh \
-    openssh-server
+    openssh-server \
+    whatweb \
+    nmap
 
 RUN apt-get update && apt-get install -y locales && \
     locale-gen en_US.UTF-8 && \
@@ -29,4 +31,4 @@ RUN dos2unix /var/www/EasySetup.sh
 RUN chmod 777 /var/www/EasySetup.sh
 RUN bash /var/www/EasySetup.sh
 
-CMD echo "Created by J0rd1s3rr4n0 -> https:github.com/j0rd1s3rr4n0/" && service apache2 start && service mariadb start && tail -f /dev/null
+CMD echo "Created by J0rd1s3rr4n0 -> https:github.com/j0rd1s3rr4n0/" && service apache2 start & service mariadb start & tail -f /dev/null
