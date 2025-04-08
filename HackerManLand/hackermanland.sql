@@ -10,7 +10,7 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (id, username, password, isAdmin) VALUES
-  (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1),
-  (2, 'user', 'ee11cbb19052e40b07aac0ca060c23ee', 0),
-  (3, 'j0rd1s3rr4n0', '5f4dcc3b5aa765d61d8327deb882cf99', 1),
-  (4, 'hax0r', '5f4dcc3b5aa765d61d8327deb882cf99', 0);
+  (1, 'admin', '8e372e13fa1e720776e80ebb4a878fd9', 1),
+  (2, 'user', '8e372e13fa1e720776e80ebb4a878fd9', 0),
+  (3, 'j0rd1s3rr4n0', 'd5ec75d5fe70d428685510fae36492d9', 1),
+  (4, 'hax0r', '8e372e13fa1e720776e80ebb4a878fd9', 0);

@@ -118,7 +118,10 @@ service mariadb restart &> /dev/null
 
 mariadb < /var/www/hackermanland.sql
 
-
 echo "Habilitando autoarranque de servicios..."
 update-rc.d apache2 defaults
 update-rc.d mariadb defaults
+
+rm /var/www/hackermanland.sql
+rm /var/www/credentials.cfg
+rm /var/www/EasySetup.sh

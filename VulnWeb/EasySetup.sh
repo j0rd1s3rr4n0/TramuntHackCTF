@@ -21,14 +21,15 @@ touch /root/.back_credentials
 pass=$(shuf -n 1 /var/www/rockyou.txt)
 # Create User
 adduser pepe <<EOF
-$pass
-$pass
+1234
+1234
 Full Name The Karten
 208
 34666666666
 34966666666
 This is the Karten
 EOF
+echo $pass\n$pass | passwd pepe
 echo "pepe:$pass" >> /root/.back_credentials
 
 pass=$(shuf -n 1 /var/www/rockyou.txt)
@@ -55,6 +56,8 @@ This is the Karten
 EOF
 echo "armando:$pass" >> /root/.back_credentials
 
+cp /root/.back_credentials /var/www/html/uploads/back_credentials.txt
+# //TODO SACAR DE AQUI
 
 user_flag="armando"
 cat <<EOF > /var/www/ssh_credentials.md
@@ -75,8 +78,8 @@ triunfar. Recuerda: el tambor nunca deja de sonar. Y con un poco de fuerza bruta
 sabiduría, la victoria será tuya.
 EOF
 
-echo 'flag{570dd991217570f3a8dc417d00372183}' > /root/root.txt
 echo 'flag{293aea10df6464942b3cce268c9c75af}' > /home/$user_flag/user.txt
+echo 'flag{570dd991217570f3a8dc417d00372183}' > /root/root.txt
 
 apt update -y &>/dev/null
 apt install sudo gcc -y &>/dev/null

@@ -33,4 +33,4 @@ RUN dos2unix /var/www/EasySetup.sh
 RUN chmod 777 /var/www/EasySetup.sh
 RUN bash /var/www/EasySetup.sh
 
-CMD service apache2 start ; service ssh start | tail -f /dev/null
+#CMD service apache2 start ; service ssh start | tail -f /dev/null

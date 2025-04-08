@@ -1,0 +1,2 @@
+FROM vulnweb:latest
+CMD service apache2 start ; service ssh start | tail -f /dev/null

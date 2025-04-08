@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS machines (
 -- Volcando datos para la tabla accounts.machines: ~1 rows (aproximadamente)
 DELETE FROM machines;
 INSERT INTO machines (id, name, ip_address, os, description, points, user_flag, root_flag, hint1, hint2, hint3) VALUES
-	(1, 'VulnWeb', '172.16.0.3', 'Linux', 'Could you audit my first personal page? I will give you all my points if you become an administrator.', 100, 'flag{293aea10df6464942b3cce268c9c75af}', 'flag{570dd991217570f3a8dc417d00372183}', 'How safe is it to allow users to upload files?', 'Follow the clues related to the credentials to access the user account', 'Look for files with unusual permissions.'),
-  (2, 'HackerManLand', '172.16.0.4', 'Linux', 'The alerts have been triggered, a hacker has breached the system, and we have logged their IP address. Will you be able to neutralize the threat? Access their systems and investigate the extent of their operations.', 100, 'CTF{user_flag_hackme}', 'CTF{root_flag_hackme}', 'Intenta acceder como usuario.', 'Busca archivos con permisos inusuales.', 'Revisa los servicios que están corriendo.');
+	(1, 'VulnWeb', '172.17.0.3', 'Linux', 'Could you audit my first personal page? I will give you all my points if you become an administrator.', 100, 'flag{293aea10df6464942b3cce268c9c75af}', 'flag{570dd991217570f3a8dc417d00372183}', 'How safe is it to allow users to upload files?', 'Follow the clues related to the credentials to access the user account', 'Look for files with unusual permissions.'),
+  (2, 'HackerManLand', '172.17.0.4', 'Linux', 'The alerts have been triggered, a hacker has breached the system, and we have logged their IP address. Will you be able to neutralize the threat? Access their systems and investigate the extent of their operations.', 100, 'CTF{user_flag_hackme}', 'CTF{root_flag_hackme}', 'Intenta acceder como usuario.', 'Busca archivos con permisos inusuales.', 'Revisa los servicios que están corriendo.');
   
 
 -- Volcando estructura para tabla accounts.submissions

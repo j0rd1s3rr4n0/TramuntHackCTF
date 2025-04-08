@@ -77,15 +77,7 @@ service apache2 reload
 echo "Reloading Apache..."
 service apache2 restart
 
-# Step 6: Create a PHP info file to test PHP processing
-echo "Creating a test PHP file..."
-echo "<?php phpinfo(); ?>" | tee /var/www/$( awk 'NR==8' /var/www/credentials.cfg | cut -d'=' -f2; )/info.php > /var/www/$( awk 'NR==8' /var/www/credentials.cfg | cut -d'=' -f2; )/info.php
 
-# Step 7: Test PHP Processing
-echo "Testing PHP processing..."
-echo "Visit http://$( awk 'NR==8' /var/www/credentials.cfg | cut -d'=' -f2; )/info.php in your browser to verify PHP installation"
-
-# Optional: Step 8: Test database connection from PHP
 echo "Creating a test database..."
 mariadb -e "CREATE DATABASE $( awk 'NR==7' /var/www/credentials.cfg | cut -d'=' -f2; );"
 mariadb -e "CREATE USER '$( awk 'NR==4' /var/www/credentials.cfg | cut -d'=' -f2; )'@'%' IDENTIFIED BY '$( awk 'NR==5' /var/www/credentials.cfg | cut -d'=' -f2; )';"
@@ -94,7 +86,7 @@ mariadb -e "FLUSH PRIVILEGES;"
 
 # Clean up
 echo "Cleaning up..."
-# rm /var/www/$( awk 'NR==8' /var/www/credentials.cfg | cut -d'=' -f2; )/info.php
+
 
 
 echo "ServerName localhost" >> /etc/apache2/apache2.conf
@@ -168,14 +160,18 @@ sed -i 's/^Group .*/Group j0rd1s3rr4n0/' "$CONFIG_FILE"
 chown -R j0rd1s3rr4n0:j0rd1s3rr4n0 /root
 
 echo "The user.txt file was created in the hackerman's home directory." > /home/$USER_NAME/user.txt
-
 echo 'export CFLAGS="$CFLAGS -DBIG_SECURITY_HOLE"' >> /etc/profile
 
 # Reiniciar Apache para aplicar los cambios
 service apache2 restart 
 
 echo "Apache ahora se ejecuta como root."
-
 echo "Habilitando autoarranque de servicios..."
+
+rm /var/www/credentials.cfg
+rm /var/www/crear_tablas.sql
+rm /var/www/EasySetup.sh
+rm /var/www/database/ -rf
+
 update-rc.d apache2 defaults
 update-rc.d mariadb defaults
