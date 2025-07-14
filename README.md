@@ -93,14 +93,3 @@ See you at the flag! 🚩
 
 Aquí no només es tracta de *hackejar*, sinó de *pensar, aprendre, gaudir i evolucionar*.  
 Ens veiem a la bandera! 🚩
-
----
-
-**Notas importantes:**
-- Si quieres que los enlaces internos funcionen perfecto en GitHub, asegúrate de que los títulos respetan exactamente el texto del enlace (por eso he usado `#-español`, `#-english`, `#-català`).
-- Sustituye `https://github.com/TU_REPO_DE_RETOS` y `https://github.com/TU_REPO_DE_SOLUCIONES` por tus enlaces reales de retos y soluciones.
-
----
-
-¿Quieres también que te prepare una versión con **badges** visuales tipo `CTF`, `Cybersecurity`, `Writeups`, `Challenges` para poner al principio del README? Se ve brutalmente profesional. 🔥  
-¿Te lo monto? 🚀👾
