@@ -70,32 +70,49 @@ if (isset($_POST['challenge_id']) && isset($_POST['flag']) && isset($_POST['type
         $difficulty = '';
     }
 
-    // Get the challenge id and flag eviting sql injection or xss or any other attack
-    $challenge_id = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['challenge_id']));
-    $flag = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['flag']));
-    $type = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['type']));
+    // Get the challenge id and flag
+    $challenge_id = (int)$_POST['challenge_id'];
+    $flag = $_POST['flag'];
+    $type = $_POST['type'];
+
+    // Normalize flag input (trim only, keep case)
+    $flag = trim(str_replace(["\r\n", "\r"], "\n", $flag));
 
     // if flag or challenge_id is empty
-    if (empty($flag) || empty($challenge_id)) {
+    if ($challenge_id <= 0 || $flag === '') {
         die(json_encode(['success' => false]));
     }
 
     // Look in submissions table finding if the flag is already submitted with value true 
-    $query = "SELECT * FROM submissions WHERE challenge_type = 'Challenge' AND type = '$type' AND challenge_id = $challenge_id AND submitted_flag = '$flag' AND team_name = '" . $_SESSION['team_name'] . "' AND is_correct = 1";
-
-    $result = $conn->query($query);
-    if ($result->num_rows > 0) {
+    $query = "SELECT 1 FROM submissions WHERE challenge_type = 'Challenge' AND type = ? AND challenge_id = ? AND submitted_flag = ? AND team_name = ? AND is_correct = 1 LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("siss", $type, $challenge_id, $flag, $_SESSION['team_name']);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
         die(json_encode(['success' => false, 'message' => 'Flag already submitted']));
     }
 
-    $challenge = $conn->query("SELECT * FROM challenges WHERE id = $challenge_id")->fetch_assoc();
+    $stmt = $conn->prepare("SELECT * FROM challenges WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $challenge_id);
+    $stmt->execute();
+    $challenge = $stmt->get_result()->fetch_assoc();
+    if (!$challenge) {
+        die(json_encode(['success' => false, 'message' => 'Challenge not found']));
+    }
+
+    $expected_flag = trim(str_replace(["\r\n", "\r"], "\n", $challenge['flag']));
     $submission_time = date('Y-m-d H:i:s');
-    if ($challenge['flag'] === $flag) {
-        $conn->query("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, type, submission_time) VALUES ('" . $_SESSION['team_name'] . "', 'Challenge', $challenge_id, '$flag', 1, '$type', '$submission_time')");
+    if ($expected_flag === $flag) {
+        $stmt = $conn->prepare("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, type, submission_time) VALUES (?, 'Challenge', ?, ?, 1, ?, ?)");
+        $stmt->bind_param("sisss", $_SESSION['team_name'], $challenge_id, $flag, $type, $submission_time);
+        $stmt->execute();
         die(json_encode(['success' => true, 'points' => $challenge['points']]));
     }
 
-    $conn->query("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, type, submission_time) VALUES ('" . $_SESSION['team_name'] . "', 'Challenge', $challenge_id, '$flag', 0, '$type', '$submission_time')");
+    $stmt = $conn->prepare("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, type, submission_time) VALUES (?, 'Challenge', ?, ?, 0, ?, ?)");
+    $stmt->bind_param("sisss", $_SESSION['team_name'], $challenge_id, $flag, $type, $submission_time);
+    $stmt->execute();
     die(json_encode(['success' => false]));
 }
 
@@ -237,28 +254,28 @@ $machines = $conn->query("SELECT * FROM machines");
                                         <div class="input-group mt-3">
                                             <!-- <div class="custom-control custom-radio"> -->
                                             <div class="ht-tm-element custom-control custom-radio">
-                                                <input type="radio" id="customRadio1_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2" class="custom-control-input">
+                                                <input type="radio" id="customRadio1_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2_<?php echo $challenge['id']; ?>" class="custom-control-input">
                                                 <label class="custom-control-label" for="customRadio1_p2_m<?php echo $challenge['id']; ?>" aria-required="">Very Easy</label>
                                             </div>
                                             <div class="ht-tm-element custom-control custom-radio">
-                                                <input type="radio" id="customRadio2_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2" class="custom-control-input">
+                                                <input type="radio" id="customRadio2_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2_<?php echo $challenge['id']; ?>" class="custom-control-input">
                                                 <label class="custom-control-label" for="customRadio2_p2_m<?php echo $challenge['id']; ?>">Easy</label>
                                             </div>
                                             <div class="ht-tm-element custom-control custom-radio">
-                                                <input type="radio" id="customRadio3_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2" class="custom-control-input">
+                                                <input type="radio" id="customRadio3_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2_<?php echo $challenge['id']; ?>" class="custom-control-input">
                                                 <label class="custom-control-label" for="customRadio3_p2_m<?php echo $challenge['id']; ?>">Medium</label>
                                             </div>
                                             <div class="ht-tm-element custom-control custom-radio">
-                                                <input type="radio" id="customRadio4_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2" class="custom-control-input">
+                                                <input type="radio" id="customRadio4_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2_<?php echo $challenge['id']; ?>" class="custom-control-input">
                                                 <label class="custom-control-label" for="customRadio4_p2_m<?php echo $challenge['id']; ?>">Hard</label>
                                             </div>
                                             <div class="ht-tm-element custom-control custom-radio">
-                                                <input type="radio" id="customRadio5_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2" class="custom-control-input">
+                                                <input type="radio" id="customRadio5_p2_m<?php echo $challenge['id']; ?>" name="customRadio_p2_<?php echo $challenge['id']; ?>" class="custom-control-input">
                                                 <label class="custom-control-label" for="customRadio5_p2_m<?php echo $challenge['id']; ?>">Very Hard</label>
                                             </div>
                                         </div>
                                         <div class="input-group mt-3">
-                                            <input type="text" class="form-control" placeholder="Enter Flag" aria-label="Enter Flag" aria-describedby="basic-addon2">
+                                            <input type="text" id="flag_input_<?php echo $challenge['id']; ?>" class="form-control" placeholder="Enter Flag" aria-label="Enter Flag" aria-describedby="basic-addon2">
                                             <input type="hidden" id="challenge_type_m<?php echo $challenge['id']; ?>" value="<?php echo $challenge['category']; ?>">
                                             <div class="input-group-append">
                                                 <button id="submit_p2_m<?php echo $challenge['id']; ?>" class="btn btn-outline-secondary" type="button">
@@ -283,7 +300,7 @@ $machines = $conn->query("SELECT * FROM machines");
                                                     diff4 ? "Hard" :
                                                     diff5 ? "Very Hard" : "Easy";
 
-                                                var flag = document.querySelector('input[aria-label="Enter Flag"]').value;
+                                                var flag = document.getElementById("flag_input_<?php echo $challenge['id']; ?>").value;
                                                 if (flag === '') {
                                                     Swal.fire({
                                                         title: 'OH OH...',

@@ -54,22 +54,25 @@ if (isset($_POST['flag'])) {
         $difficulty = '';
     }
 
-    // Get the challenge id and flag eviting sql injection or xss or any other attack
-    $flag = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['flag']));
+    // Get the flag
+    $flag = trim(str_replace(["\r\n", "\r"], "\n", $_POST['flag']));
 
     // Find in the table challenges the challenge_id of the challenge who has the flag submitted
-    $stmt = $conn->prepare("SELECT id FROM challenges WHERE flag = ?");
-    $stmt->bind_param("s", $_POST['flag']);
+    $stmt = $conn->prepare("SELECT id, flag, points FROM challenges WHERE flag = ? LIMIT 1");
+    $stmt->bind_param("s", $flag);
     $stmt->execute();
     $flag_result_query = $stmt->get_result();
     $stmt->close();  
     
     if ($flag_result_query->num_rows > 0) {
-        $challenge_id = $flag_result_query->fetch_assoc()['id'];
+        $challenge_row = $flag_result_query->fetch_assoc();
+        $challenge_id = $challenge_row['id'];
     } else {
         $challenge_id = 0;
         $submission_time = date('Y-m-d H:i:s');
-        $conn->query("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time,type) VALUES ('" . $_SESSION['team_name'] . "', 'Challenge', $challenge_id, '$flag', 0, '$submission_time','easteregg')");
+        $stmt = $conn->prepare("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time, type) VALUES (?, 'Challenge', ?, ?, 0, ?, 'easteregg')");
+        $stmt->bind_param("siss", $_SESSION['team_name'], $challenge_id, $flag, $submission_time);
+        $stmt->execute();
         $conn->close();
         die(json_encode(['success' => false, 'message' => 'Invalid flag']));
     }
@@ -80,21 +83,27 @@ if (isset($_POST['flag'])) {
     
 
     // Look in submissions table finding if the flag is already submitted with value true 
-    $query = "SELECT * FROM submissions WHERE challenge_type = 'Joker' AND challenge_id = $challenge_id AND submitted_flag = '$flag' AND team_name = '" . $_SESSION['team_name'] . "' AND is_correct = 1";
-
-    $result = $conn->query($query);
-    if ($result->num_rows > 0) {
+    $query = "SELECT 1 FROM submissions WHERE challenge_type = 'Challenge' AND type = 'easteregg' AND challenge_id = ? AND submitted_flag = ? AND team_name = ? AND is_correct = 1 LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iss", $challenge_id, $flag, $_SESSION['team_name']);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
         die(json_encode(['success' => false, 'message' => 'Flag already submitted']));
     }
 
-    $challenge = $conn->query("SELECT * FROM challenges WHERE id = $challenge_id")->fetch_assoc();
     $submission_time = date('Y-m-d H:i:s');
-    if ($challenge['flag'] === $flag) {
-        $conn->query("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time,type) VALUES ('" . $_SESSION['team_name'] . "', 'Challenge', $challenge_id, '$flag', 1, '$submission_time','easteregg')");
-        die(json_encode(['success' => true, 'points' => $challenge['points']]));
+    $expected_flag = trim(str_replace(["\r\n", "\r"], "\n", $challenge_row['flag']));
+    if ($expected_flag === $flag) {
+        $stmt = $conn->prepare("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time, type) VALUES (?, 'Challenge', ?, ?, 1, ?, 'easteregg')");
+        $stmt->bind_param("siss", $_SESSION['team_name'], $challenge_id, $flag, $submission_time);
+        $stmt->execute();
+        die(json_encode(['success' => true, 'points' => $challenge_row['points']]));
     }
 
-    $conn->query("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time,type) VALUES ('" . $_SESSION['team_name'] . "', 'Challenge', $challenge_id, '$flag', 0, '$submission_time','easteregg')");
+    $stmt = $conn->prepare("INSERT INTO submissions (team_name, challenge_type, challenge_id, submitted_flag, is_correct, submission_time, type) VALUES (?, 'Challenge', ?, ?, 0, ?, 'easteregg')");
+    $stmt->bind_param("siss", $_SESSION['team_name'], $challenge_id, $flag, $submission_time);
+    $stmt->execute();
     die(json_encode(['success' => false]));
 }
 $conn->close();

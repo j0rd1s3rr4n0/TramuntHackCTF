@@ -1,0 +1,20 @@
+{
+  "default": {
+    "host": 8001,
+    "container": 80
+  },
+  "overrides": {
+    "managementCTF": {
+      "host": 80,
+      "container": 80
+    },
+    "hydroflow-image": {
+      "host": 5000,
+      "container": 5000
+    },
+    "finsecure-bank": [
+      { "host": 5080, "container": 80 },
+      { "host": 3000, "container": 443 }
+    ]
+  }
+}

@@ -73,7 +73,7 @@
                 <div class="row">
                     <div class="col-xl-8">
                         <h1 class="display-1 bold color_white content__title">TRAMUNTHACKCTF<span class="vim-caret">&nbsp;</span></h1>
-                        <h1 class="display-1 bold color_white content__title2">2024</h1>
+                        <h1 class="display-1 bold color_white content__title2">2026</h1>
                     </div>
                 </div>
                 <div class="row">

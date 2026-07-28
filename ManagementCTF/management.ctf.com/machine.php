@@ -115,13 +115,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['user']) || isset($_P
     $result_flags = ["user_flag" => false, "root_flag" => false];
     foreach ($submited_flags as $flagObject) {
         $flag_field = $flagObject['field'];
-        $flag = $flagObject['flag'];
+        $flag = trim(str_replace(["\r\n", "\r"], "\n", $flagObject['flag']));
         $type = $flagObject['type'];
 
         if ($flag !== "") {
             $query = "SELECT $flag_field FROM machines WHERE $flag_field = ? AND id = ?";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("ss", $flag, $machine_id);
+            $stmt->bind_param("si", $flag, $machine_id);
             $stmt->execute();
             $result = $stmt->get_result();
             //aqui quiero ver la consulta que se esta ejecutando
@@ -139,13 +139,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['user']) || isset($_P
                 $isvalid_flag = true;
             }
 
-            // Revisar si existe ya una submission con la flag que is_correct = 1 del equipo $_SESSSION['team_name']
-            $query = "SELECT * FROM submissions WHERE team_name = ? AND submitted_flag = ? AND is_correct = 1";
+            // Revisar si existe ya una submission correcta de este equipo para esta mÃ¡quina y tipo
+            $query = "SELECT 1 FROM submissions WHERE team_name = ? AND challenge_type = 'Machine' AND challenge_id = ? AND type = ? AND submitted_flag = ? AND is_correct = 1 LIMIT 1";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("ss", $_SESSION['team_name'], $flag);
+            $stmt->bind_param("siss", $_SESSION['team_name'], $machine_id, $type, $flag);
             $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
+            $stmt->store_result();
+            if ($stmt->num_rows > 0) {
                 die(json_encode(["status" => "error", "message" => "Flag ya enviada anteriormente"]));
             }
 
